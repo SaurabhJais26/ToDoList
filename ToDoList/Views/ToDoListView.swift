@@ -6,37 +6,49 @@
 //
 
 import SwiftUI
+import FirebaseFirestoreSwift
 
 struct ToDoListView: View {
     @StateObject var viewModel = ToDoListViewViewModel()
+    @FirestoreQuery var items: [ToDoListItem]
     
-    private let userId: String
     
     init(userId: String) {
-        self.userId = userId
+        //users/<id>/todos/<entries>
+        self._items = FirestoreQuery(
+            collectionPath: "users/\(userId)/todos")
     }
     
     var body: some View {
         NavigationView {
             VStack {
-                
-            }
-            .navigationTitle("To Do List")
-            .toolbar {
-                Button {
-                    // action
-                    viewModel.showingNewItemView = true
-                } label: {
-                    Image(systemName: "plus")
+                List(items) { item in
+                    ToDoListItemView(item: item)
+                        .swipeActions {
+                            Button("Delete") {
+                                viewModel.delete(id: item.id)
+                            }
+                            .background(Color.red)
+                        }
+                        .listStyle(PlainListStyle())
                 }
-            }
-            .sheet(isPresented: $viewModel.showingNewItemView) {
-                NewItemView(newItemPresented: $viewModel.showingNewItemView)
+                .navigationTitle("To Do List")
+                .toolbar {
+                    Button {
+                        // action
+                        viewModel.showingNewItemView = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+                .sheet(isPresented: $viewModel.showingNewItemView) {
+                    NewItemView(newItemPresented: $viewModel.showingNewItemView)
+                }
             }
         }
     }
-}
-
-#Preview {
-    ToDoListView(userId: "")
+    
+    #Preview {
+        ToDoListView(userId: "P51JLNbdyNagPHWRZmOkejELtmN2")
+    }
 }
